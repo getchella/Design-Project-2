@@ -15,3 +15,4 @@ void loop() {
 }
 
 // This is a comment. The author of this comment is Curtis. I am very good at writing comments
+// This is a comment by Alex Getchell. I am better than Curtis at writing comments
