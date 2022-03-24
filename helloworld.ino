@@ -12,3 +12,5 @@ void loop() {
     digitalWrite(9, LOW);
   }
 }
+
+// This is a comment. The author of this comment is Curtis. I am very good at writing comments
