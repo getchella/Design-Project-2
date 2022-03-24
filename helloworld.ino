@@ -2,6 +2,7 @@ void setup() {
   // put your setup code here, to run once:
   pinMode(9, OUTPUT);
   pinMode(8, INPUT_PULLUP);
+  //jack rozzo here, how's it going
 }
 
 void loop() {
