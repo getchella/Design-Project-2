@@ -1,35 +1,37 @@
 #define x       A0    // analog pin connected to X intput (bell)
 #define y       A1    // analog pin connected to Y intput (bell)
-#define tiltsw  8     // digital pin connected to tilt switch input (tip)
-#define btn     _     // digital pin connected to button input (udder)
-#define start   _     // digital pin connected to button input (start)
-#define seg7_0  _     // __ pin connected to 7-segment controller output
-#define led1    _     // digital pin connected to LED output (bell_LED)
-#define led2    _     // digital pin connected to LED output (tip_LED)
-#define led3    _     // digital pin connected to LED output (udder_LED)
+#define tiltsw  9     // digital pin connected to tilt switch input (tip)
+#define udder   8     // digital pin connected to button input (udder)
+#define start   7     // digital pin connected to button input (start)
+#define speaker 3     // digital PWM pin to output audio from SD card
+#define SD_CLK  13    // SPI clock
+#define SD_MISO 12    // SPI MISO
+#define SD_MOSI 11    // SPI MOSI
+#define SD_CS   4     // SPI chip select
 
 
-enum action {
+enum ternary {
   tip,
   ring,
   pull
 };
+
+ternary action;
 byte rann;
 bool gameOver;
 byte score;
 unsigned int interval;
 bool continu;
+int tiltCount;    // counter used to measure duration of tilt
 
 void setup() {                      // Begins when power switch is set to ON and provides voltage to Vcc pin
   pinMode(tiltsw, INPUT);
   pinMode(x, INPUT);
   pinMode(y, INPUT);
-  pinMode(btn, INPUT);
+  pinMode(udder, INPUT);
   pinMode(start, INPUT);
-  pinMode(led1, OUTPUT);
-  pinMode(led2, OUTPUT);
-  pinMode(led3, OUTPUT);
-  pinMode(seg7_0, OUTPUT);
+  pinMode(speaker, OUTPUT);
+  
   score = 0;                        // User's score in game
   interval = 3000;                  // Time limit to accomplish task
   randomSeed(micros());             // Sets random seed based on time until Start button pressed
@@ -37,8 +39,7 @@ void setup() {                      // Begins when power switch is set to ON and
 }
 
 void loop() {
-  startval = digitalRead(start);          // Check Start button
-  if(startval && !continu){               // Check beginning of game
+  if(digitalRead(start) && !continu){               // Check beginning of game
     startup();
   }
   if(continu){                            // Check player is still in the game
@@ -51,18 +52,20 @@ void loop() {
       action = pull;                      // ''
     }
     checkSuccess(interval, action);       // Time to see if user performs action
-    if((score % 4) == 0))                 // Check if it's time to speed up
+    if((score % 4) == 0)                  // Check if it's time to speed up
       interval = interval-100;            // Decreasing time interval
   }
 }
 
-void checkSuccess(int timelimit, enum actiontype){      // Check objective sequence
-  bool success;
-  for(int count=0; count<timelimit; count++){           // Iterating through time limit
-    success = checkInput(actiontype);                   // Setting based on input
-    if(success){                                        // Check if user performed action
+void checkSuccess(int timelimit, ternary actiontype){      // Check objective sequence
+  tiltCount = 0;    // sets tilt count to 0
+  
+  for(int count=0; count<timelimit; count++){           // Iter                   // Setting based on input
+    if(checkInput(actiontype)){                                        // Check if user performed action
       continu = true;                                   // Proceed with game
-      score++;                                          // Increment user's score
+      score++;
+      
+      // Increment user's score
       return;
     }
     delay(1);                                           // Part of iterating through time limit
@@ -70,11 +73,30 @@ void checkSuccess(int timelimit, enum actiontype){      // Check objective seque
   fail();                                               // Have not completed in time so run end-game
 }
 
-bool checkInput(enum actiontype){                       // Check input signal(s)
-  if(actionype == tip){                                 // Check if user needs to tip the cow
-    bool tilt = digitalRead(tiltsw);                    // Reading tilt switch input
-    if(!tilt){                                          // Check read
+/*
+bool checkInputNew(enum actiontype) {
+  bool tilt = digitalRead(tiltsw);
+  int xval = analogRead(x);                                   // Read X-axis of joystick input
+  int yval = analogRead(y);
+  bool pull = digitalRead(udder);
+
+  if(digitalRead(tiltsw)){                                          // Check read
+    count++;
+    if (count == 50) {
       return true;
+    }
+  }
+  
+}
+*/
+
+bool checkInput(ternary actiontype){                       // Check input signal(s)
+  if(actiontype == tip){                                 // Check if user needs to tip the cow
+    if(digitalRead(tiltsw)){                                          // Check read
+      tiltCount++;
+      if (tiltCount == 50) {
+        return true;
+      }
     } else {
       return false;
     }
@@ -87,8 +109,7 @@ bool checkInput(enum actiontype){                       // Check input signal(s)
       return false;
     }
   } else if(actiontype == pull){                        // Check if user needs to pull the udder
-    bool btnpress = digitalRead(btn);                   // Reading "pull" button input
-    if(btnpress){                                       // Check read
+    if(!digitalRead(udder)){                             // Check read
       return true;
     } else {
       return false;
