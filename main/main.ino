@@ -31,7 +31,7 @@ void setup() {                      // Begins when power switch is set to ON and
   pinMode(udder, INPUT);
   pinMode(start, INPUT);
   pinMode(speaker, OUTPUT);
-  
+
   score = 0;                        // User's score in game
   interval = 3000;                  // Time limit to accomplish task
   randomSeed(micros());             // Sets random seed based on time until Start button pressed
@@ -59,12 +59,12 @@ void loop() {
 
 void checkSuccess(int timelimit, ternary actiontype){      // Check objective sequence
   tiltCount = 0;    // sets tilt count to 0
-  
+
   for(int count=0; count<timelimit; count++){           // Iter                   // Setting based on input
     if(checkInput(actiontype)){                                        // Check if user performed action
       continu = true;                                   // Proceed with game
       score++;
-      
+
       // Increment user's score
       return;
     }
@@ -76,56 +76,76 @@ void checkSuccess(int timelimit, ternary actiontype){      // Check objective se
 /*
 bool checkInputNew(enum actiontype) {
   bool tilt = digitalRead(tiltsw);
+  bool pull = digitalRead(udder);
   int xval = analogRead(x);                                   // Read X-axis of joystick input
   int yval = analogRead(y);
-  bool pull = digitalRead(udder);
-
   if(digitalRead(tiltsw)){                                          // Check read
     count++;
     if (count == 50) {
       return true;
     }
   }
-  
 }
 */
 
-bool checkInput(ternary actiontype){                       // Check input signal(s)
-  if(actiontype == tip){                                 // Check if user needs to tip the cow
-    if(digitalRead(tiltsw)){                                          // Check read
-      tiltCount++;
-      if (tiltCount == 50) {
+bool checkInput(ternary actiontype){                            // Check input signal(s)
+  int xval = analogRead(x);                                     // Reading joysticks for whole checkInput
+  int yval = analogRead(y); 
+
+  if(actiontype == tip){                                        // Tilt                            
+    if(digitalRead(tiltsw)){                                    // Check if they tilt for 50
+      tiltCount++;                                              
+      if (tiltCount == 50) {                                  
         return true;
       }
+    } else if(digitalRead(udder)) {                             // If any other action return false
+      return false;
+    } else if(xval > 600 || xval < 400 || yval > 600 || yval < 400){
+      return false;
     } else {
       return false;
     }
-  } else if(actiontype == ring){                                // Check if user needs to ring the bell
-    int xval = analogRead(x);                                   // Read X-axis of joystick input
-    int yval = analogRead(y);                                   // Read Y-axis of joystick input
+    
+  } else if(actiontype == ring){                                // Ring
     if(xval > 600 || xval < 400 || yval > 600 || yval < 400){   // Check if joystick is moved far enough
       return true;
-    } else {
+    } else if(digitalRead(tilt)) {                              
+      tiltCount++;                                              // If any other action return false
+      if (tiltCount == 50) {
+        return false;
+      }
+    } else if(digitalRead(udder)) {
       return false;
+    } else {
+      return false;                                             
     }
-  } else if(actiontype == pull){                        // Check if user needs to pull the udder
-    if(!digitalRead(udder)){                             // Check read
+    
+  } else if(actiontype == pull){                                // Udder
+    if(!digitalRead(udder)){                                    // Check if udder is yanked
       return true;
+    } else if(digitalRead(tilt)) {                              // If any other action return false
+      tiltCount++;
+      if (tiltCount == 50) {
+        return false;
+      }
+    } else if(xval > 600 || xval < 400 || yval > 600 || yval < 400) {
+      return false;
     } else {
       return false;
     }
   }
+  
 }
 
-void startup(){                             // Startup sequence at beginning of game
+void startup(){                                                 // Startup sequence at beginning of game
   //TODO count 3, 2, 1 and blink LEDs or smth
   //TODO set 7-seg to "go"
-  continu = true;                           // Proceeding with the game
+  continu = true;                                               // Proceeding with the game
 }
 
-void fail(){                                // Ending sequence to finish game
-  continu = false;                          // Cannot proceed with the game
+void fail(){                                                    // Ending sequence to finish game
+  continu = false;                                              // Cannot proceed with the game
   //TODO blink final score
   //TODO set 7 seg to 00 or dash dash or smth
-  score = 0;                                // Reset score for next game
+  score = 0;                                                    // Reset score for next game
 }
