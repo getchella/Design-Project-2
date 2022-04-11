@@ -73,21 +73,6 @@ void checkSuccess(int timelimit, ternary actiontype){      // Check objective se
   fail();                                               // Have not completed in time so run end-game
 }
 
-/*
-bool checkInputNew(enum actiontype) {
-  bool tilt = digitalRead(tiltsw);
-  bool pull = digitalRead(udder);
-  int xval = analogRead(x);                                   // Read X-axis of joystick input
-  int yval = analogRead(y);
-  if(digitalRead(tiltsw)){                                          // Check read
-    count++;
-    if (count == 50) {
-      return true;
-    }
-  }
-}
-*/
-
 bool checkInput(ternary actiontype){                            // Check input signal(s)
   int xval = analogRead(x);                                     // Reading joysticks for whole checkInput
   int yval = analogRead(y); 
