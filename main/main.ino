@@ -1,3 +1,6 @@
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
 #define x A0       // analog pin connected to X intput (bell)
 #define y A1       // analog pin connected to Y intput (bell)
 #define tiltsw 9   // digital pin connected to tilt switch input (tip)
@@ -47,27 +50,27 @@ void setup()
 
 void loop()
 {
-  if (digitalRead(start) && !continu)
-  { // Check beginning of game
+  if (digitalRead(start) && !continu) // Check beginning of game
+  {
     startup();
   }
-  if (continu)
-  {                      // Check player is still in the game
+  if (continu) // Check player is still in the game
+  {
     rann = random(1, 4); // Randomly picking an action
-    if (rann == 1)
-    {               // Checking and assigning enum action
+    if (rann == 1)       // Checking and assigning enum action
+    {
       action = tip; // Assigning enum action
       // TODO: output to speaker
       // TODO: ??maybe flash current action onto screen??
     }
-    else if (rann == 2)
-    {                // Checking and assigning enum action
+    else if (rann == 2) // Checking and assigning enum action
+    {
       action = ring; // Assigning enum action
       // TODO: output to speaker
       // TODO: ??maybe flash current action onto screen??
     }
-    else
-    {                // Checking and assigning enum action
+    else // Checking and assigning enum action
+    {
       action = pull; // Assigning enum action
       // TODO: output to speaker
       // TODO: ??maybe flash current action onto screen??
@@ -169,7 +172,7 @@ responses checkInput(actions actiontype) // Check input signal(s)
 
 bool checkUdder()
 {
-  return !digitalRead(udder); // Check if udder is yanked
+  return digitalRead(udder); // Check if udder is yanked
 }
 
 bool checkTip()
