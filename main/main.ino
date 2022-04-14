@@ -1,5 +1,6 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <Wire.h>
 
 #define x A0       // analog pin connected to X intput (bell)
 #define y A1       // analog pin connected to Y intput (bell)
@@ -11,6 +12,9 @@
 #define SD_MISO 12 // SPI MISO
 #define SD_MOSI 11 // SPI MOSI
 #define SD_CS 4    // SPI chip select
+#define oled_addr 0x3C
+#define oled_width  128
+#define oled_height 64
 
 typedef enum actions
 {
@@ -33,8 +37,13 @@ unsigned int interval;
 bool continu;
 int tiltCount; // counter used to measure duration of tilt
 
+Adafruit_SSD1306 display(oled_width, oled_height, &Wire, -1);
+
+
 void setup()
 { // Begins when power switch is set to ON and provides voltage to Vcc pin
+  display.begin(SSD1306_SWITCHCAPVCC, oled_addr);
+  
   pinMode(tiltsw, INPUT);
   pinMode(x, INPUT);
   pinMode(y, INPUT);
@@ -46,6 +55,8 @@ void setup()
   interval = 3000;      // Time limit to accomplish task
   randomSeed(micros()); // Sets random seed based on time until Start button pressed
   continu = false;      // A continue flag to keep game process going
+
+  updateScore();
 }
 
 void loop()
@@ -82,6 +93,7 @@ void loop()
       interval = interval - 100; // Decreasing time interval
 
     // TODO: Update LCD with current score
+    updateScore();
   }
 }
 
@@ -210,6 +222,7 @@ void startup() // Startup sequence at beginning of game
   // TODO count 3, 2, 1
   // TODO set 7-seg to "go"
   continu = true; // Proceeding with the game
+  updateScore();
 }
 
 void fail() // Ending sequence to finish game
@@ -218,4 +231,17 @@ void fail() // Ending sequence to finish game
   // TODO blink final score
   // TODO set 7 seg to 00 or dash dash or smth
   score = 0; // Reset score for next game
+}
+
+void updateScore() {
+  display.clearDisplay();
+  display.fillScreen(SSD1306_BLACK);
+  display.setTextSize(2);             // Normal 1:1 pixel scale
+  display.setCursor(32,0);
+  display.setTextColor(SSD1306_WHITE);
+  display.print("SCORE:");
+  display.setTextSize(4);
+  display.setCursor(54, 20);
+  display.print(score);
+  display.display();
 }
