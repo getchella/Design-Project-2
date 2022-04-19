@@ -1,8 +1,11 @@
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+//#include <Adafruit_GFX.h>
+//#include <Adafruit_SSD1306.h>
 #include <Wire.h>
 #include <SPI.h>
 #include <TMRpcm.h>
+#include <U8x8lib.h>
+
+U8X8_SSD1306_128X64_NONAME_SW_I2C u8x8(/* clock=*/ SCL, /* data=*/ SDA, /* reset=*/ U8X8_PIN_NONE);
 
 #define x A0       // analog pin connected to X intput (bell)
 #define y A1       // analog pin connected to Y intput (bell)
@@ -40,11 +43,13 @@ bool continu;
 int tiltCount; // counter used to measure duration of tilt
 TMRpcm tmrpcm;
 
-Adafruit_SSD1306 display(oled_width, oled_height, &Wire, -1);
+//Adafruit_SSD1306 display(oled_width, oled_height, &Wire, -1);
 
 void setup()
 { // Begins when power switch is set to ON and provides voltage to Vcc pin
-  display.begin(SSD1306_SWITCHCAPVCC, oled_addr);
+//  display.begin(SSD1306_SWITCHCAPVCC, oled_addr);
+  u8x8.begin();
+  u8x8.setFont(u8x8_font_px437wyse700a_2x2_r);
 
   pinMode(tiltsw, INPUT);
   pinMode(x, INPUT);
@@ -52,22 +57,22 @@ void setup()
   pinMode(udder, INPUT);
   pinMode(start, INPUT);
   pinMode(speaker, OUTPUT);
-  //tmrpcm.speakerPin = 3;
-  //SD.begin(SD_CS);
+  tmrpcm.speakerPin = 3;
+  SD.begin(SD_CS);
 
   score = 0;            // User's score in game
   interval = 8000;      // Time limit to accomplish task
   continu = false;      // A continue flag to keep game process going
 
-  display.clearDisplay();
-  display.fillScreen(SSD1306_BLACK);
-  display.setTextSize(2); // 2:1 pixel scale
-  display.setCursor(36, 0);
-  display.setTextColor(SSD1306_WHITE);
-  display.print("PRESS");
-  display.setCursor(36, 20);
-  display.print("START");
-  display.display();
+  u8x8.clearDisplay();
+  u8x8.setCursor(36, 0);
+  u8x8.print("PRESS");
+  u8x8.setCursor(36, 20);
+  u8x8.print("START");
+  u8x8.display();
+
+  tmrpcm.play("got_milk.wav");
+  
 }
 
 void loop()
@@ -82,21 +87,21 @@ void loop()
     if (rann == 1)       // Checking and assigning enum action
     {
       action = tip; // Assigning enum action
-      displayAction(tip);
+//      displayAction(tip);
       delay(1000);
       // TODO: output to speaker
     }
     else if (rann == 2) // Checking and assigning enum action
     {
       action = ring; // Assigning enum action
-      displayAction(ring);
+//      displayAction(ring);
       delay(1000);
       // TODO: output to speaker
     }
     else // Checking and assigning enum action
     {
       action = pull; // Assigning enum action
-      displayAction(pull);
+//      displayAction(pull);
       delay(1000);
       // TODO: output to speaker
     }
@@ -256,74 +261,65 @@ void fail() // Ending sequence to finish game
   continu = false;            // Cannot proceed with the game
   for (int i = 0; i < 5; i++) // Blink final score
   {
-    display.clearDisplay();
-    display.fillScreen(SSD1306_BLACK);
-    display.setTextSize(2); // 2:1 pixel scale
-    display.setCursor(16, 0);
-    display.setTextColor(SSD1306_WHITE);
-    display.print("GAME OVER");
-    display.setTextSize(4);
+    
+    u8x8.clearDisplay();
+    u8x8.setCursor(16, 0);
+    u8x8.print("GAME OVER");
     if (score < 10)
     {
-      display.setCursor(54, 20);
+      u8x8.setCursor(54, 20);
     }
     else
     {
-      display.setCursor(49, 20);
+      u8x8.setCursor(49, 20);
     }
-    display.print(score);
-    display.display();
+    u8x8.print(score);
+    u8x8.display();
     delay(500);
-    display.clearDisplay();
+    u8x8.clearDisplay();
     delay(500);
   }
   
   score = 0; // Reset score for next game
 
-  display.clearDisplay();
+  u8x8.clearDisplay();
 }
 
 void displayScore()
 {
-  display.clearDisplay();
-  display.fillScreen(SSD1306_BLACK);
-  display.setTextSize(2); // 2:1 pixel scale
-  display.setCursor(32, 0);
-  display.setTextColor(SSD1306_WHITE);
-  display.print("SCORE:");
-  display.setTextSize(4);
+  
+  u8x8.clearDisplay();
+  u8x8.setCursor(32, 0);
+  u8x8.print("SCORE:");
   if (score < 10)
   {
-    display.setCursor(54, 20);
+    u8x8.setCursor(54, 20);
   }
   else
   {
-    display.setCursor(49, 20);
+    u8x8.setCursor(49, 20);
   }
-  display.print(score);
-  display.display();
+  u8x8.print(score);
+  u8x8.display();
 }
 
 void displayAction(actions actiontype)
 {
-  display.clearDisplay();
-  display.fillScreen(SSD1306_BLACK);
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(3);
+  u8x8.clearDisplay();
   if (actiontype == tip)
   {
-    display.setCursor(20, 40);
-    display.print("Tip It!!");
+    u8x8.setCursor(20, 40);
+    u8x8.print("Tip It!!");
   }
   else if (actiontype == ring)
   {
-    display.setCursor(16, 40);
-    display.print("Ring It!!");
+    u8x8.setCursor(16, 40);
+    u8x8.print("Ring It!!");
   }
   else if (actiontype == pull)
   {
-    display.setCursor(16, 40);
-    display.print("Pull It!!");
+    u8x8.setCursor(16, 40);
+    u8x8.print("Pull It!!");
   }
-  display.display();
+  u8x8.display();
 }
