@@ -38,7 +38,7 @@ byte score;
 unsigned int interval;
 bool continu;
 int tiltCount; // counter used to measure duration of tilt
-//TMRpcm tmrpcm;
+TMRpcm tmrpcm;
 
 Adafruit_SSD1306 display(oled_width, oled_height, &Wire, -1);
 
@@ -57,7 +57,6 @@ void setup()
 
   score = 0;            // User's score in game
   interval = 8000;      // Time limit to accomplish task
-  //randomSeed(micros()); // Sets random seed based on time until Start button pressed
   continu = false;      // A continue flag to keep game process going
 
   display.clearDisplay();
@@ -245,6 +244,7 @@ bool checkRing()
 
 void startup() // Startup sequence at beginning of game
 {
+  randomSeed(micros()); // Sets random seed based on time until Start button pressed
   // TODO count 3, 2, 1
   // TODO set 7-seg to "go"
   continu = true; // Proceeding with the game
