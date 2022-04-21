@@ -4,16 +4,12 @@
 #include <SPI.h>
 #include <pitches.h>
 
-#define x A0       // analog pin connected to X intput (bell)
-#define y A1       // analog pin connected to Y intput (bell)
-#define tiltsw 9   // digital pin connected to tilt switch input (tip)
-#define udder 8    // digital pin connected to button input (udder)
-#define start 7    // digital pin connected to button input (start)
-#define speaker 3  // digital PWM pin to output audio from SD card
-#define SD_CLK 13  // SPI clock
-#define SD_MISO 12 // SPI MISO
-#define SD_MOSI 11 // SPI MOSI
-#define SD_CS 4    // SPI chip select
+#define x A0      // analog pin connected to X intput (bell)
+#define y A1      // analog pin connected to Y intput (bell)
+#define tiltsw 9  // digital pin connected to tilt switch input (tip)
+#define udder 8   // digital pin connected to button input (udder)
+#define start 7   // digital pin connected to button input (start)
+#define speaker 3 // digital PWM pin to output audio from SD card
 #define oled_addr 0x3C
 #define oled_width 128
 #define oled_height 64
@@ -33,13 +29,10 @@ typedef enum responses
 
 actions action;
 byte rann;
-bool gameOver;
 byte score;
 unsigned int interval;
 bool continu;
 int tiltCount; // counter used to measure duration of tilt
-TMRpcm tmrpcm;
-
 Adafruit_SSD1306 display(oled_width, oled_height, &Wire, -1);
 
 void setup()
@@ -58,7 +51,6 @@ void setup()
   continu = false; // A continue flag to keep game process going
 
   display.clearDisplay();
-  display.fillScreen(SSD1306_BLACK);
   display.setTextSize(2); // 2:1 pixel scale
   display.setCursor(36, 0);
   display.setTextColor(SSD1306_WHITE);
@@ -108,9 +100,7 @@ void loop()
 
     if ((score % 4) == 0)        // Check if it's time to speed up
       interval = interval - 100; // Decreasing time interval
-    if (score == 10)
-      fail();
-    displayScore(); // Update LCD with current score
+    displayScore();              // Update LCD with current score
   }
 }
 
@@ -223,8 +213,6 @@ bool checkTip()
     else
     {
       display.clearDisplay();
-      display.fillScreen(SSD1306_BLACK);
-      display.setTextColor(SSD1306_WHITE);
       display.setTextSize(2);
       display.setCursor(10, 20);
       display.print("You're tilted");
@@ -252,26 +240,24 @@ bool checkRing()
 void startup() // Startup sequence at beginning of game
 {
   randomSeed(micros()); // Sets random seed based on time until Start button pressed
-  for (
-      int i = 3; i >= 0, i-- _ {
-        display.clearDisplay();
-        display.fillScreen(SSD1306_BLACK);
-        display.setTextColor(SSD1306_WHITE);
-        display.setTextSize(3);
-        if (i == 0)
-        {
-          display.setCursor(20, 20);
-          display.print("GO!");
-        }
-        else
-        {
-          display.setCursor(20, 30);
-          display.setCursor(i);
-        }
-        display.display();
-        delay(1000);
-      })
-    continu = true; // Proceeding with the game
+  for (int i = 3; i >= 0, i--)
+  {
+    display.clearDisplay();
+    display.setTextSize(3);
+    if (i == 0)
+    {
+      display.setCursor(20, 20);
+      display.print("GO!");
+    }
+    else
+    {
+      display.setCursor(20, 30);
+      display.print(i);
+    }
+    display.display();
+    delay(1000);
+  }
+  continu = true; // Proceeding with the game
   displayScore();
 }
 
@@ -281,10 +267,8 @@ void fail() // Ending sequence to finish game
   for (int i = 0; i < 5; i++) // Blink final score
   {
     display.clearDisplay();
-    display.fillScreen(SSD1306_BLACK);
     display.setTextSize(2); // 2:1 pixel scale
     display.setCursor(16, 0);
-    display.setTextColor(SSD1306_WHITE);
     display.print("GAME OVER");
     display.setTextSize(4);
     if (score < 10)
@@ -313,10 +297,8 @@ void win() // Ending sequence to finish game
   for (int i = 0; i < 5; i++) // Blink final score
   {
     display.clearDisplay();
-    display.fillScreen(SSD1306_BLACK);
     display.setTextSize(2); // 2:1 pixel scale
     display.setCursor(16, 0);
-    display.setTextColor(SSD1306_WHITE);
     display.print("YOU WIN!!!");
     display.setTextSize(4);
     if (score < 10)
@@ -342,10 +324,8 @@ void win() // Ending sequence to finish game
 void displayScore()
 {
   display.clearDisplay();
-  display.fillScreen(SSD1306_BLACK);
   display.setTextSize(2); // 2:1 pixel scale
   display.setCursor(32, 0);
-  display.setTextColor(SSD1306_WHITE);
   display.print("SCORE:");
   display.setTextSize(4);
   if (score < 10)
@@ -364,8 +344,6 @@ void displayScore()
 void displayAction(actions actiontype)
 {
   display.clearDisplay();
-  display.fillScreen(SSD1306_BLACK);
-  display.setTextColor(SSD1306_WHITE);
   display.setTextSize(2);
   if (actiontype == tip)
   {
