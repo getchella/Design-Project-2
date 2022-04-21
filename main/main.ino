@@ -289,6 +289,7 @@ void fail() // Ending sequence to finish game
   score = 0; // Reset score for next game
 
   display.clearDisplay();
+  setup();
 }
 
 void win() // Ending sequence to finish game
@@ -319,6 +320,7 @@ void win() // Ending sequence to finish game
   score = 0; // Reset score for next game
 
   display.clearDisplay();
+  setup();
 }
 
 void displayScore()
