@@ -2,7 +2,7 @@
 #include <Adafruit_SSD1306.h>
 #include <Wire.h>
 #include <SPI.h>
-#include <TMRpcm.h>
+#include <pitches.h>
 
 #define x A0       // analog pin connected to X intput (bell)
 #define y A1       // analog pin connected to Y intput (bell)
@@ -52,12 +52,10 @@ void setup()
   pinMode(udder, INPUT);
   pinMode(start, INPUT);
   pinMode(speaker, OUTPUT);
-  //tmrpcm.speakerPin = 3;
-  //SD.begin(SD_CS);
 
-  score = 0;            // User's score in game
-  interval = 8000;      // Time limit to accomplish task
-  continu = false;      // A continue flag to keep game process going
+  score = 0;       // User's score in game
+  interval = 5000; // Time limit to accomplish task
+  continu = false; // A continue flag to keep game process going
 
   display.clearDisplay();
   display.fillScreen(SSD1306_BLACK);
@@ -83,22 +81,27 @@ void loop()
     {
       action = tip; // Assigning enum action
       displayAction(tip);
-      delay(1000);
-      // TODO: output to speaker
+      setTone(NOTE_B1, 1000);
+      delay(500);
     }
     else if (rann == 2) // Checking and assigning enum action
     {
       action = ring; // Assigning enum action
       displayAction(ring);
-      delay(1000);
-      // TODO: output to speaker
+      setTone(NOTE_F4, 600);
+      delay(300);
+      setTone(NOTE_F4, 600);
     }
     else // Checking and assigning enum action
     {
       action = pull; // Assigning enum action
       displayAction(pull);
-      delay(1000);
-      // TODO: output to speaker
+      setTone(NOTE_C7, 250);
+      delay(250);
+      setTone(NOTE_C7, 250);
+      delay(250);
+      setTone(NOTE_C7, 250);
+      delay(250);
     }
 
     checkSuccess(interval, action); // Time to see if user performs action
@@ -107,7 +110,7 @@ void loop()
       interval = interval - 100; // Decreasing time interval
     if (score == 10)
       fail();
-    displayScore();              // Update LCD with current score
+    displayScore(); // Update LCD with current score
   }
 }
 
@@ -117,11 +120,18 @@ void checkSuccess(int timelimit, actions actiontype) // Check objective sequence
   for (int count = 0; count < timelimit; count++)
   {
     inputresponse = checkInput(actiontype); // Setting based on input
-    if (inputresponse == correct)                     // Check if user performed action
+    if (inputresponse == correct)           // Check if user performed action
     {
       continu = true; // Proceed with game
       score++;        // Increment user's score
-      return;
+      if (score == 100)
+      {
+        win();
+      }
+      else
+      {
+        return;
+      }
     }
     else if (inputresponse == incorrect) // Check if user performed wrong action
     {
@@ -133,16 +143,6 @@ void checkSuccess(int timelimit, actions actiontype) // Check objective sequence
     }
     delay(1); // Part of iterating through time limit
   }
-  
-/*
-if (inputresponse == incorrect) {
-    display.print("incorrect");
-  } else if (inputresponse == nothing) {
-    display.print("nothing");
-  } else {
-    display.print("correct");
-  }
-  */
   fail(); // Have not completed in time so run end-game
 }
 
@@ -222,7 +222,14 @@ bool checkTip()
     }
     else
     {
-      // TODO: output message to LCD that tilt switch is activated
+      display.clearDisplay();
+      display.fillScreen(SSD1306_BLACK);
+      display.setTextColor(SSD1306_WHITE);
+      display.setTextSize(2);
+      display.setCursor(10, 20);
+      display.print("You're tilted");
+      display.display();
+      delay(1000);
     }
   }
   return true; // tilt was activated for long enough to be considered an input
@@ -245,9 +252,26 @@ bool checkRing()
 void startup() // Startup sequence at beginning of game
 {
   randomSeed(micros()); // Sets random seed based on time until Start button pressed
-  // TODO count 3, 2, 1
-  // TODO set 7-seg to "go"
-  continu = true; // Proceeding with the game
+  for (
+      int i = 3; i >= 0, i-- _ {
+        display.clearDisplay();
+        display.fillScreen(SSD1306_BLACK);
+        display.setTextColor(SSD1306_WHITE);
+        display.setTextSize(3);
+        if (i == 0)
+        {
+          display.setCursor(20, 20);
+          display.print("GO!");
+        }
+        else
+        {
+          display.setCursor(20, 30);
+          display.setCursor(i);
+        }
+        display.display();
+        delay(1000);
+      })
+    continu = true; // Proceeding with the game
   displayScore();
 }
 
@@ -277,7 +301,39 @@ void fail() // Ending sequence to finish game
     display.clearDisplay();
     delay(500);
   }
-  
+
+  score = 0; // Reset score for next game
+
+  display.clearDisplay();
+}
+
+void win() // Ending sequence to finish game
+{
+  continu = false;            // Cannot proceed with the game
+  for (int i = 0; i < 5; i++) // Blink final score
+  {
+    display.clearDisplay();
+    display.fillScreen(SSD1306_BLACK);
+    display.setTextSize(2); // 2:1 pixel scale
+    display.setCursor(16, 0);
+    display.setTextColor(SSD1306_WHITE);
+    display.print("YOU WIN!!!");
+    display.setTextSize(4);
+    if (score < 10)
+    {
+      display.setCursor(54, 20);
+    }
+    else
+    {
+      display.setCursor(49, 20);
+    }
+    display.print(score);
+    display.display();
+    delay(500);
+    display.clearDisplay();
+    delay(500);
+  }
+
   score = 0; // Reset score for next game
 
   display.clearDisplay();
@@ -302,6 +358,7 @@ void displayScore()
   }
   display.print(score);
   display.display();
+  delay(1000);
 }
 
 void displayAction(actions actiontype)
@@ -309,21 +366,28 @@ void displayAction(actions actiontype)
   display.clearDisplay();
   display.fillScreen(SSD1306_BLACK);
   display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(3);
+  display.setTextSize(2);
   if (actiontype == tip)
   {
-    display.setCursor(20, 40);
+    display.setCursor(25, 20);
     display.print("Tip It!!");
   }
   else if (actiontype == ring)
   {
-    display.setCursor(16, 40);
+    display.setCursor(20, 20);
     display.print("Ring It!!");
   }
   else if (actiontype == pull)
   {
-    display.setCursor(16, 40);
+    display.setCursor(20, 20);
     display.print("Pull It!!");
   }
   display.display();
+}
+
+void setTone(int note, int duration)
+{
+  tone(speaker, note, duration);
+  delay(duration);
+  noTone(speaker);
 }
