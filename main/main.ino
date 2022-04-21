@@ -53,9 +53,9 @@ void setup()
   pinMode(start, INPUT);
   pinMode(speaker, OUTPUT);
 
-  score = 0;            // User's score in game
-  interval = 8000;      // Time limit to accomplish task
-  continu = false;      // A continue flag to keep game process going
+  score = 0;       // User's score in game
+  interval = 5000; // Time limit to accomplish task
+  continu = false; // A continue flag to keep game process going
 
   display.clearDisplay();
   display.fillScreen(SSD1306_BLACK);
