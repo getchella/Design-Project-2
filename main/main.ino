@@ -2,7 +2,7 @@
 #include <Adafruit_SSD1306.h>
 #include <Wire.h>
 #include <SPI.h>
-#include <pitches.h>
+#include "pitches.h"
 
 #define x A0      // analog pin connected to X intput (bell)
 #define y A1      // analog pin connected to Y intput (bell)
@@ -32,7 +32,6 @@ byte rann;
 byte score;
 unsigned int interval;
 bool continu;
-int tiltCount; // counter used to measure duration of tilt
 Adafruit_SSD1306 display(oled_width, oled_height, &Wire, -1);
 
 void setup()
@@ -46,18 +45,7 @@ void setup()
   pinMode(start, INPUT);
   pinMode(speaker, OUTPUT);
 
-  score = 0;       // User's score in game
-  interval = 5000; // Time limit to accomplish task
-  continu = false; // A continue flag to keep game process going
-
-  display.clearDisplay();
-  display.setTextSize(2); // 2:1 pixel scale
-  display.setCursor(36, 0);
-  display.setTextColor(SSD1306_WHITE);
-  display.print("PRESS");
-  display.setCursor(36, 20);
-  display.print("START");
-  display.display();
+  gameInit();
 }
 
 void loop()
@@ -100,7 +88,10 @@ void loop()
 
     if ((score % 4) == 0)        // Check if it's time to speed up
       interval = interval - 100; // Decreasing time interval
-    displayScore();              // Update LCD with current score
+    if(continu)
+    {
+      displayScore();              // Update LCD with current score
+    }
   }
 }
 
@@ -204,22 +195,28 @@ bool checkUdder()
 
 bool checkTip()
 {
+/*  display.clearDisplay();       // **** commenting out this alert as it does not behave as expected ****
+  display.setTextSize(1);
+  display.setCursor(10, 20);
+  display.print("You're tilted");
+  bool alerted = false;
   for (int i = 0; i < 2000; i++) // 2 seconds to correct tilt
-  {
+  {*/
     if (!digitalRead(tiltsw))
     {
       return false; // tilt switch is not activated
     }
+/*    else if (!alerted)
+    {
+      display.display();      // This takes a while and thus turns a "2 s" loop into like 30 s
+      alerted = true;         // so we set the flag here so in next loop iteration, we keep screen or return
+    }
     else
     {
-      display.clearDisplay();
-      display.setTextSize(2);
-      display.setCursor(10, 20);
-      display.print("You're tilted");
-      display.display();
-      delay(1000);
+      continue;
     }
-  }
+    delay(1);
+  }*/
   return true; // tilt was activated for long enough to be considered an input
 }
 
@@ -240,7 +237,7 @@ bool checkRing()
 void startup() // Startup sequence at beginning of game
 {
   randomSeed(micros()); // Sets random seed based on time until Start button pressed
-  for (int i = 3; i >= 0, i--)
+  for (int i = 3; i >= 0; i--)
   {
     display.clearDisplay();
     display.setTextSize(3);
@@ -263,7 +260,6 @@ void startup() // Startup sequence at beginning of game
 
 void fail() // Ending sequence to finish game
 {
-  continu = false;            // Cannot proceed with the game
   for (int i = 0; i < 5; i++) // Blink final score
   {
     display.clearDisplay();
@@ -283,24 +279,21 @@ void fail() // Ending sequence to finish game
     display.display();
     delay(500);
     display.clearDisplay();
+    display.display();
     delay(500);
   }
 
-  score = 0; // Reset score for next game
-
-  display.clearDisplay();
-  setup();
+  gameInit();
 }
 
 void win() // Ending sequence to finish game
 {
-  continu = false;            // Cannot proceed with the game
   for (int i = 0; i < 5; i++) // Blink final score
   {
     display.clearDisplay();
     display.setTextSize(2); // 2:1 pixel scale
     display.setCursor(16, 0);
-    display.print("YOU WIN!!!");
+    display.print("YOU WIN!!");
     display.setTextSize(4);
     if (score < 10)
     {
@@ -314,13 +307,11 @@ void win() // Ending sequence to finish game
     display.display();
     delay(500);
     display.clearDisplay();
+    display.display();
     delay(500);
   }
 
-  score = 0; // Reset score for next game
-
-  display.clearDisplay();
-  setup();
+  gameInit();
 }
 
 void displayScore()
@@ -370,4 +361,18 @@ void setTone(int note, int duration)
   tone(speaker, note, duration);
   delay(duration);
   noTone(speaker);
+}
+
+void gameInit(){
+  score = 0;       // User's score in game
+  interval = 5000; // Time limit to accomplish task
+  continu = false; // A continue flag to keep game process going
+  display.clearDisplay();
+  display.setTextSize(2); // 2:1 pixel scale
+  display.setCursor(36, 0);
+  display.setTextColor(SSD1306_WHITE);
+  display.print("PRESS");
+  display.setCursor(36, 20);
+  display.print("START");
+  display.display();
 }
